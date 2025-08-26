@@ -1,22 +1,31 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"os"
 
-	"github.com/LotoFoot/txGPT/internal/ai" // Importe le package ai (adaptez si nécessaire)
+	"github.com/LotoFoot/txGPT/internal/ai"
 )
 
 func main() {
-	if len(os.Args) < 2 {
-		fmt.Println("Utilisation : ./txgpt.exe \"Votre question ou prompt\"")
-		return
+	stream := flag.Bool("stream", false, "Activer le streaming")
+	flag.Parse()
+
+	cfg := ai.DefaultConfig()
+	cfg.Stream = *stream
+
+	if flag.NArg() < 1 {
+		fmt.Println("Usage : ./txgpt.exe [--stream] \"Votre prompt\"")
+		os.Exit(1)
 	}
-	prompt := os.Args[1] // Accès sécurisé au premier argument
-	response, err := ai.Ask(prompt)
+	prompt := flag.Arg(0)
+
+	// Historique vide pour ce exemple ; étendez si needed
+	response, err := ai.Ask(prompt, nil, cfg)
 	if err != nil {
 		fmt.Println("Erreur :", err)
-		return
+		os.Exit(1)
 	}
 	fmt.Println("Réponse de l'IA :", response)
 }
