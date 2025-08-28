@@ -5,146 +5,159 @@ It is tuned for Kali Linux and common penetration-testing workflows, but also wo
 ![txGPT demo](images/txGPT.png)
 
 
+Bien sûr ! Puisque le push fonctionne maintenant (félicitations pour avoir résolu le 403 !), on va mettre à jour le fichier **README.md** de ton dépôt https://github.com/LotoFoot/txGPT. Je vais te fournir une version mise à jour du README (en anglais, comme l'original, pour cohérence), qui inclut les nouvelles fonctionnalités : output JSON, intégration Rich pour affichage enrichi, extraction dynamique de données (regex pour Nmap), et les scripts `rich_display.py` et `txgpt_rich.sh`.
 
----
+### Étape 1 : Mettre à jour README.md localement
+- Dans PowerShell 7.5.2 :
+  ```powershell
+  cd C:\Users\lazaz\txGPT
+  code README.md  # Ou notepad README.md si tu n'as pas VS Code
+  ```
+
+- Remplace **tout le contenu** de README.md par cette version mise à jour (copie-colle-la). J'ai ajouté des sections pour les nouvelles features, l'installation de Rich, et des exemples.
+
+```markdown
+# txGPT – AI-Powered CLI Assistant for Kali Linux
+
+txGPT is a Go-based command-line tool (CLI) that leverages the OpenAI API to generate scripts, commands, and technical explanations. It is tuned for Kali Linux and common penetration-testing workflows, but also works on any Linux, macOS, or Windows host.
 
 ## Features
-* **English or French output** – default is English; change with `--lang`.
-* **Streaming mode** – see long answers appear live.
-* **Role presets** – e.g. `--role "kali expert"` for pentest-focused replies.
-* **Interactive shell** – run `txgpt` without arguments for a REPL-like loop.
-* **Safe execution flag** – optional `--exec` asks before running generated code.
-* **Lightweight** – single static binary, no Python stack required.
 
----
+- **English or French output** – default is English; change with `--lang`.
+- **Streaming mode** – see long answers appear live.
+- **Role presets** – e.g. `--role "kali expert"` for pentest-focused replies.
+- **Interactive shell** – run `txgpt` without arguments for a REPL-like loop.
+- **Safe execution flag** – optional `--exec` asks before running generated code.
+- **JSON output** – use `--json` for structured responses (e.g., for integration with other tools).
+- **Rich terminal display** – Optional Python integration with Rich library for colored, tabulated outputs (via `rich_display.py` and `txgpt_rich.sh`).
+- **Dynamic data extraction** – Automatically parses responses (e.g., Nmap ports/states/services) into JSON data arrays.
+- **Lightweight** – single static binary, no Python stack required (except for optional Rich features).
 
 ## Prerequisites
-* Go ≥ 1.22  
-  `sudo apt install golang-go`    (on Kali Linux)
-* A valid OpenAI API key – create one at <https://platform.openai.com/account/api-keys>
-* Git – to clone this repo.
 
----
+- Go ≥ 1.22 (`sudo apt install golang-go` on Kali Linux).
+- A valid OpenAI API key – create one at https://platform.openai.com/account/api-keys.
+- Git – to clone this repo.
+- (Optional for Rich display) Python 3 and Rich library: `pip install rich`.
 
 ## Installation
 
-1 – Clone
-git clone https://github.com/LotoFoot/txGPT.git
-cd txGPT
+1. Clone the repo:
+   ```
+   git clone https://github.com/LotoFoot/txGPT.git
+   cd txGPT
+   ```
 
-2 – Build
-go mod tidy
-go build -o txgpt # Linux / macOS
+2. Build the binary:
+   ```
+   go mod tidy
+   go build -o txgpt  # Linux / macOS
+   go build -o txgpt.exe  # Windows
+   ```
 
-go build -o txgpt.exe # Windows
-3 – (Unix) install globally
-sudo mv txgpt /usr/local/bin/
-sudo chmod +x /usr/local/bin/txgpt
+3. (Unix) Install globally:
+   ```
+   sudo mv txgpt /usr/local/bin/
+   sudo chmod +x /usr/local/bin/txgpt
+   ```
 
-text
+4. Configure the API key (Unix):
+   ```
+   echo 'export OPENAI_API_KEY="sk-proj-YOUR_KEY"' >> ~/.bashrc
+   source ~/.bashrc
+   ```
 
-### Configure the API key (Unix)
+   On Windows PowerShell:
+   ```
+   $env:OPENAI_API_KEY = "sk-proj-YOUR_KEY"
+   # Permanent: Add to your profile script
+   ```
 
-echo 'export OPENAI_API_KEY="sk-proj-YOUR_KEY"' >> ~/.bashrc
-source ~/.bashrc
-
-text
-
-On Windows PowerShell:
-
-$env:OPENAI_API_KEY = "sk-proj-YOUR_KEY"
-
-permanent:
-text
-
----
+5. (Optional) For Rich display:
+   - Install Rich: `pip install rich`.
+   - Use the provided `txgpt_rich.sh` wrapper for enriched outputs.
 
 ## Quick Start
 
+Basic usage:
+```
 txgpt "Generate a Bash script that backs up /var/www to /tmp."
+```
 
-text
-
-Streaming example:
-
-txgpt --stream --role "kali expert"
-"Write a secure Bash script that scans 192.168.1.0/24 with nmap, detects hosts and open ports, and outputs XML and HTML."
-
-text
-
-Interactive mode:
-
-txgpt
-Prompt > Explain the difference between nmap -sS and -sT
-
-text
-
----
+With Rich display (on Unix-like systems):
+```
+./txgpt_rich.sh "Écris un script Nmap"
+```
+This pipes JSON output to `rich_display.py` for colored tables and panels.
 
 ## Examples
 
-* Basic host discovery  
-  `txgpt "Give me a one-liner with nmap to list live hosts on 10.0.0.0/24"`
+- Basic host discovery:
+  ```
+  txgpt "Give me a one-liner with nmap to list live hosts on 10.0.0.0/24"
+  ```
 
-* Create a Python reverse shell template  
-  `txgpt --role "red team" "Produce a Python3 reverse shell (no external libs) that connects to 10.10.10.5:9001"`
+- Create a Python reverse shell:
+  ```
+  txgpt --role "red team" "Produce a Python3 reverse shell (no external libs) that connects to 10.10.10.5:9001"
+  ```
 
-* Explain a metasploit module  
-  `txgpt "Describe how to use exploit/windows/smb/ms17_010_eternalblue step by step."`
+- Explain a Metasploit module:
+  ```
+  txgpt "Describe how to use exploit/windows/smb/ms17_010_eternalblue step by step."
+  ```
 
----
+- JSON output with data extraction:
+  ```
+  ./txgpt --json "Écris un script Nmap avec des exemples de ports ouverts"
+  # Outputs JSON like: {"response":"...", "data":[["80","open","http"],["443","open","https"]]}
+  ```
+
+- Enriched with Rich:
+  ```
+  ./txgpt_rich.sh "Génère un scan Nmap"  # Affiche en couleurs avec tableaux
+  ```
 
 ## Troubleshooting
 
-| Issue                          | Fix                                                                 |
-| --------------------------------| --------------------------------------------------------------------|
-| **401 Unauthorized**           | Key invalid/expired → regenerate on OpenAI dashboard.               |
-| `shopt/complete not found`     | Install bash-completion `sudo apt install bash-completion`.         |
-| Flags ignored (`--stream`)     | Re-build after updating `main.go`; ensure you run the new binary.    |
-
----
+| Issue | Fix |
+|-------|-----|
+| **401 Unauthorized** | Key invalid/expired → regenerate on OpenAI dashboard. |
+| `shopt/complete not found` | Install bash-completion: `sudo apt install bash-completion`. |
+| Flags ignored (`--stream`) | Re-build after updating `main.go`; ensure you run the new binary. |
+| **403 on push** | Use a valid PAT or SSH key for authentication. |
+| Rich not displaying | Ensure `pip install rich` and run via `txgpt_rich.sh`. |
 
 ## Contributing
 
-1. Fork this repo  
-2. `git checkout -b feature/my-feature`  
-3. `git commit -m "Add my feature"`  
-4. `git push origin feature/my-feature`  
-5. Open a Pull Request
+1. Fork this repo.
+2. `git checkout -b feature/my-feature`.
+3. `git commit -m "Add my feature"`.
+4. `git push origin feature/my-feature`.
+5. Open a Pull Request.
 
 Please write comments and documentation in English.
 
----
-
 ## License
+
 MIT License – see **LICENSE** file for details.
-MIT License
 
-Copyright (c) 2025  Rabzouz
+*Author: Lionel Oto – contact: you@example.com*
+```
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the “Software”), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+- Sauvegarde le fichier (Ctrl+S dans VS Code ou Notepad).
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+### Étape 2 : Commit et push la mise à jour
+- Dans PowerShell :
+  ```powershell
+  git add README.md
+  git commit -m "Mise à jour README : ajout des nouvelles features JSON et Rich"
+  git push origin main
+  ```
+  - Puisque ton PAT est maintenant stocké (via wincred), ça push sans redemander.
 
-THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+### Étape 3 : Vérification
+- Rafraîchis https://github.com/LotoFoot/txGPT pour voir le README mis à jour.
+- Si tu veux ajouter des images ou plus de détails (ex. screenshots de l'affichage Rich), modifie et repush.
 
----
-
-*Author : Your Name – contact: you@example.com*
-Commit and push
-bash
-git add README.md
-git commit -m "Add English README"
-git push origin main
+Ton dépôt est maintenant complet avec un README à jour ! Si tu as besoin d'ajustements (ex. traduire en français), dis-le-moi. 😊
