@@ -255,7 +255,7 @@ Add `--json` for structured output or `--exec` to run the generated code with co
 ## License
 MIT – see **LICENSE**.
 
-*Author : Lionel Oto – contact: you@example.com*
+*Author : rabzouz– contact: you@example.com*
 Commandes Git pour terminer
 powershell
 # 1. Ouvre le README, colle le contenu ci-dessus et sauvegarde
@@ -280,6 +280,6 @@ Please keep comments and documentation in English.
 
 ---
 
-> **Author** : Lionel Oto · you@example.com  
+> **Author** : rabzouz · you@example.com  
 > *Happy hacking – always with permission!*
 
