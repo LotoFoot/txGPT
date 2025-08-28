@@ -102,16 +102,5 @@ Please write comments and documentation in English.
 MIT – see **LICENSE**.
 
 *Author : Lionel Oto – contact: you@example.com*
-Commandes Git pour terminer
-powershell
-# 1. Ouvre le README, colle le contenu ci-dessus et sauvegarde
-code README.md   # ou notepad README.md
 
-# 2. Marque le conflit comme résolu
-git add README.md
 
-# 3. Poursuis le rebase
-git rebase --continue
-
-# 4. Pousse la branche mise à jour
-git push origin main
