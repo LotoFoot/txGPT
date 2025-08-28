@@ -7,12 +7,7 @@ It is tuned for Kali Linux and common penetration-testing workflows, but also wo
 
 Bien sûr ! Puisque le push fonctionne maintenant (félicitations pour avoir résolu le 403 !), on va mettre à jour le fichier **README.md** de ton dépôt https://github.com/LotoFoot/txGPT. Je vais te fournir une version mise à jour du README (en anglais, comme l'original, pour cohérence), qui inclut les nouvelles fonctionnalités : output JSON, intégration Rich pour affichage enrichi, extraction dynamique de données (regex pour Nmap), et les scripts `rich_display.py` et `txgpt_rich.sh`.
 
-### Étape 1 : Mettre à jour README.md localement
-- Dans PowerShell 7.5.2 :
-  ```powershell
-  cd C:\Users\lazaz\txGPT
-  code README.md  # Ou notepad README.md si tu n'as pas VS Code
-  ```
+
 
 - Remplace **tout le contenu** de README.md par cette version mise à jour (copie-colle-la). J'ai ajouté des sections pour les nouvelles features, l'installation de Rich, et des exemples.
 
