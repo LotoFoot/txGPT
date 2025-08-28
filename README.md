@@ -139,20 +139,3 @@ MIT License – see **LICENSE** file for details.
 
 *Author: Lionel Oto – contact: you@example.com*
 ```
-
-- Sauvegarde le fichier (Ctrl+S dans VS Code ou Notepad).
-
-### Étape 2 : Commit et push la mise à jour
-- Dans PowerShell :
-  ```powershell
-  git add README.md
-  git commit -m "Mise à jour README : ajout des nouvelles features JSON et Rich"
-  git push origin main
-  ```
-  - Puisque ton PAT est maintenant stocké (via wincred), ça push sans redemander.
-
-### Étape 3 : Vérification
-- Rafraîchis https://github.com/LotoFoot/txGPT pour voir le README mis à jour.
-- Si tu veux ajouter des images ou plus de détails (ex. screenshots de l'affichage Rich), modifie et repush.
-
-Ton dépôt est maintenant complet avec un README à jour ! Si tu as besoin d'ajustements (ex. traduire en français), dis-le-moi. 😊
