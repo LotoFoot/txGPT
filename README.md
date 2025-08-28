@@ -1,5 +1,4 @@
-<<<<<<< HEAD
-text
+
 # txGPT – AI-Powered CLI Assistant for Kali Linux
 
 txGPT is a Go-based command-line tool (CLI) that leverages the OpenAI API to generate scripts, commands and technical explanations. It is tuned for Kali Linux and common penetration-testing workflows, but also works on any Linux, macOS or Windows host.  
@@ -283,4 +282,4 @@ Please keep comments and documentation in English.
 
 > **Author** : Lionel Oto · you@example.com  
 > *Happy hacking – always with permission!*
->>>>>>> 0914bfd7f9d7cea24aaa694511fe3c4629cd4f89
+
