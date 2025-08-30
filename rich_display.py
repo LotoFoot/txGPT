@@ -1,53 +1,45 @@
+#!/usr/bin/env python3
 from rich.console import Console
 from rich.table import Table
 from rich.panel import Panel
 from rich.markdown import Markdown
-import argparse
-import json
-import html  # Pour déséchapper les entités HTML comme \u003c
+from rich.spinner import Spinner
+import argparse, json, html
 
-# Parser pour arguments
-parser = argparse.ArgumentParser()
-parser.add_argument('--prompt', help='Le prompt original')
-parser.add_argument('--output', help='La sortie à afficher (JSON ou texte)')
+# ──────────────────── Parsing des arguments ────────────────────
+parser = argparse.ArgumentParser(description="Affiche joliment la sortie JSON de txGPT")
+parser.add_argument("--prompt",  required=True, help="Prompt original")
+parser.add_argument("--output",  required=True, help="Sortie JSON ou texte brut de txGPT")
 args = parser.parse_args()
 
 console = Console()
 
-# Essayer de parser l'output comme JSON
+# ──────────────────── Décodage JSON sûr ────────────────────
 try:
     output_data = json.loads(args.output)
-    response_text = output_data.get('response', 'Aucune réponse')
-    data_rows = output_data.get('data', [])
-except:
-    response_text = args.output or 'Exemple de données'
-    data_rows = []
+    response_text = output_data.get("response", "Aucune réponse")
+    data_rows    = output_data.get("data", [])
+except json.JSONDecodeError:
+    response_text = args.output or "Aucune réponse"
+    data_rows    = []
 
-# Nettoyer les échappements (remplace \\n par \n, déséchappe HTML/Unicode)
-response_text = response_text.replace('\\n', '\n').replace('\\r', '')
-response_text = html.unescape(response_text)  # Gère \u003c -> <, etc.
+# Nettoyage des échappements
+response_text = html.unescape(response_text.replace("\\n", "\n").replace("\\r", ""))
 
-# Markdown dynamique pour le header
-markdown_text = f"""
-# Résultats pour : {args.prompt or 'Test'}
-- Prompt original : {args.prompt or 'N/A'}
-"""
+# ──────────────────── Affichage Rich ────────────────────
+console.print(Markdown(f"# Résultats pour : {args.prompt}"), style="bold blue")
+console.print(Panel(Markdown(response_text), title="Réponse txGPT", style="green"))
 
-console.print(Markdown(markdown_text), style="bold blue")
-
-# Panel pour la réponse textuelle, rendue comme Markdown
-console.print(Panel(Markdown(response_text), title="Réponse txGPT", style="green", expand=True))
-
-# Tableau si des données sont présentes
+# Tableau si données présentes
 if data_rows:
-    table = Table(title="Données Extraites")
-    # Ajouter des colonnes dynamiquement basées sur la première ligne
-    if data_rows and data_rows[0]:
-        for i in range(len(data_rows[0])):
-            table.add_column(f"Col{i+1}", style="cyan" if i % 2 == 0 else "magenta")
+    table = Table(title="Données extraites")
+    # Colonnes explicites (Port / État / Service) si cela correspond
+    for col, style in zip(("Port", "État", "Service"), ("cyan", "magenta", "yellow")):
+        table.add_column(col, style=style)
     for row in data_rows:
-        table.add_row(*row)
+        table.add_row(*row[:3])           # Sécurise la longueur
     console.print(table)
+else:
+    console.print("[italic]Aucune donnée structurée trouvée.[/italic]")
 
-console.print("[bold red]Fin ! Prêt pour le prochain prompt ?[/bold red]")
-
+console.print("[bold red]Fin ![/bold red]")
