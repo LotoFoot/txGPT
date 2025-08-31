@@ -2,8 +2,7 @@
 
 ![txGPT Logo](images/txGPT.png)
 
-*txGPT est un outil CLI écrit en **Go** qui exploite l’API OpenAI pour générer scripts, commandes et explications techniques.  
-Optimisé pour les flux de travail **Kali Linux** (pentest), il fonctionne également sous Linux, macOS et Windows.*
+*txGPT est un outil CLI écrit en **Go** qui exploite l’API OpenAI pour générer scripts, commandes et explications techniques. Optimisé pour les flux de travail **Kali Linux** (pentest), il fonctionne également sous Linux, macOS et Windows.*
 
 ---
 
@@ -17,7 +16,7 @@ Optimisé pour les flux de travail **Kali Linux** (pentest), il fonctionne égal
 | Interactive shell | `txgpt` ⇢ REPL |
 | Safe execution | `--exec` asks before running generated code |
 | JSON output | `--json` for structured responses |
-| Rich display | Python + Rich (`rich_display.py`/`txgpt_rich.sh`) |
+| Rich display | Python + Rich (`rich_display.py` / `txgpt_rich.sh`) |
 | Dynamic data extraction | Parses Nmap `port/state/service` blocks to JSON |
 | Lightweight | Static binary; Python only for Rich mode |
 | **shell-gpt integration** | Advanced code, shell & QA generation |
@@ -31,7 +30,7 @@ Optimisé pour les flux de travail **Kali Linux** (pentest), il fonctionne égal
 
 ## 🖼️ Demo GIF
 
-*(drop a short asciinema/GIF here)*
+*(Insérez un GIF ou une vidéo de démo ici, ex: ![Demo](GIF_txGPT.mp4))*
 
 ---
 
@@ -43,7 +42,7 @@ Optimisé pour les flux de travail **Kali Linux** (pentest), il fonctionne égal
 | **Git** | latest | `sudo apt install git` |
 | **OpenAI API key** | active | create on platform.openai.com |
 | Python 3 (optional) | ≥ 3.8 | `sudo apt install python3 python3-pip` + `pip install rich` |
-| **shell-gpt** (optional) | latest |<br>`python3 -m venv ~/sgpt_env`<br>`source ~/sgpt_env/bin/activate`<br>`pip install shell-gpt` |
+| **shell-gpt** (optional) | latest | `python3 -m venv ~/sgpt_env`<br>`source ~/sgpt_env/bin/activate`<br>`pip install shell-gpt` |
 
 ---
 
@@ -68,11 +67,15 @@ text
 
 ### API Key Setup
 
-Bash / Zsh
+**Bash / Zsh**
+
 echo 'export OPENAI_API_KEY="sk-proj-XXXXXXXXXXXX"' >> ~/.bashrc
 source ~/.bashrc
 
-PowerShell
+text
+
+**PowerShell**
+
 $Env:OPENAI_API_KEY = "sk-proj-XXXXXXXXXXXX"
 
 text
@@ -91,9 +94,10 @@ text
 
 txgpt "Generate a Bash script that backs up /var/www to /tmp."
 
-add --json for structured output
-add --exec to run the generated code with confirmation
 text
+
+- Add `--json` for structured output
+- Add `--exec` to run the generated code with confirmation
 
 ---
 
@@ -107,7 +111,7 @@ text
 | JSON + port parsing | `txgpt --json "Écris un script Nmap avec des exemples de ports ouverts"` |
 | Rich display | `./txgpt_rich.sh "Génère un scan Nmap"` |
 | Code generation (sgpt) | `sgpt --code "Écris un script Python pour analyser des logs d'erreurs"` |
-| Code improvement | `sgpt --code "Script pour lister fichiers" \| tgpt "Améliore ce code"` |
+| Code improvement | `sgpt --code "Script pour lister fichiers" | tgpt "Améliore ce code"` |
 | System update | `sgpt --shell "Mettre à jour Kali sans confirmation en utilisant sudo"` |
 | BDD tests | `sgpt "Génère des cas de tests BDD pour « Ajouter un produit au panier » (edge cases)"` |
 | Image creation | `generate_image "cat in cyberpunk city"` (custom bash func) |
@@ -141,16 +145,17 @@ text
 
 Open a Pull Request – please keep code & comments in **English**.
 
+**Contributors:** LotoFoot, rabzouz, Moonwalkeuse
+
 ---
 
 ## 📝 License
 
-MIT © 2025 Rabzouz.  
-See `LICENSE` for details.
+MIT © 2025 Rabzouz. See `LICENSE` for details.
 
 ---
 
-> **Author :** Rabzouz · you@example.com  
+> **Author:** Rabzouz · you@example.com  
 > Happy hacking – always with permission!
 
 ---
