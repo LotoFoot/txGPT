@@ -18,6 +18,8 @@ import (
 	"github.com/fatih/color"
 	openai "github.com/sashabaranov/go-openai"
 	"github.com/sirupsen/logrus"
+
+	"txGPT/features" // Import du sous-package features (ajustez si nécessaire, ex: "./features")
 )
 
 var (
@@ -99,6 +101,11 @@ func main() {
 	isInteractiveShell := flag.Bool("is", false, "Start shell interactive mode")
 	isShell := flag.Bool("s", false, "Generate and Execute shell commands")
 	shouldExecuteCommand := flag.Bool("y", false, "Instantly execute the shell command")
+
+	// Nouveaux flags pour agent et multimodal
+	agent := flag.Bool("agent", false, "Activer le mode agent autonome")
+	image := flag.String("image", "", "Chemin vers l'image à analyser (pour mode multimodal)")
+
 	flag.Parse()
 
 	if flag.NArg() < 1 && !*isInteractive && !*isInteractiveShell {
@@ -122,6 +129,22 @@ func main() {
 
 	if *debug {
 		log.Info(fmt.Sprintf("DEBUG: Config - Model: %s, Stream: %v, Role: %s", cfg.Model, cfg.Stream, *role))
+	}
+
+	// Mode agent autonome
+	if *agent {
+		client := openai.NewClient(os.Getenv("OPENAI_API_KEY"))
+		response := features.AgentMode(client, prompt, 5) // 5 itérations max par défaut
+		fmt.Println("Réponse agent:", response)
+		return
+	}
+
+	// Mode multimodal (analyse image)
+	if *image != "" {
+		client := openai.NewClient(os.Getenv("OPENAI_API_KEY"))
+		response := features.AnalyzeImage(client, *image, prompt)
+		fmt.Println("Analyse image:", response)
+		return
 	}
 
 	if *isInteractive {
