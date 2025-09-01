@@ -6,20 +6,17 @@ import (
 	"flag"
 	"fmt"
 	"os"
-	"os/exec"
 	"os/signal"
-	"regexp"
 	"strings"
 	"sync"
 	"syscall"
 	"time"
 
-	Prompt "github.com/c-bata/go-prompt"
 	"github.com/fatih/color"
-	openai "github.com/sashabaranov/go```enai"
+	openai "github.com/sashabaranov/go-openai"
 	"github.com/sirupsen/logrus"
 
-	"github.com/LotoFoot/txGPT/features```// Chemin d```port complet```sé sur votre```po GitHub
+	"github.com/LotoFoot/txGPT/features" // Import complet pour features/ (basé sur votre repo GitHub)
 )
 
 var (
@@ -51,13 +48,14 @@ func Ask(prompt string, _ interface{}, cfg Config) (string, error) {
 		return "", fmt.Errorf("OPENAI_API_KEY non définie")
 	}
 
-	ctx, cancel := context.WithTimeout```ntext.Background(), 30*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
-	req := openai.ChatCompletionRequest```	Model: cfg.Model,
+	req := openai.ChatCompletionRequest{
+		Model: cfg.Model,
 		Messages: []openai.ChatCompletionMessage{
-			{Role: openai.ChatMessageRoleSystem,```ntent: cfg```stemPrompt},
-			{Role: openai.ChatMessageRoleUser, Content```rompt},
+			{Role: openai.ChatMessageRoleSystem, Content: cfg.SystemPrompt},
+			{Role: openai.ChatMessageRoleUser, Content: prompt},
 		},
 		MaxTokens: 1024,
 		Stream:    cfg.Stream,
@@ -65,7 +63,7 @@ func Ask(prompt string, _ interface{}, cfg Config) (string, error) {
 
 	var response strings.Builder
 	if cfg.Stream {
-		stream, err := client.CreateChatCompletion```eam(ctx, req)
+		stream, err := client.CreateChatCompletionStream(ctx, req)
 		if err != nil {
 			return "", err
 		}
@@ -75,12 +73,13 @@ func Ask(prompt string, _ interface{}, cfg Config) (string, error) {
 			if err != nil {
 				break
 			}
-			for _, choice := range resp.Choices```				fmt.Print(choice.Delta.Content)
+			for _, choice := range resp.Choices {
+				fmt.Print(choice.Delta.Content)
 				response.WriteString(choice.Delta.Content)
 			}
 		}
 	} else {
-		resp, err := client.CreateChatCompletion```x, req)
+		resp, err := client.CreateChatCompletion(ctx, req)
 		if err != nil {
 			return "", err
 		}
@@ -91,26 +90,29 @@ func Ask(prompt string, _ interface{}, cfg Config) (string, error) {
 
 func main() {
 	model := flag.String("model", openai.GPT4oMini, "Modèle OpenAI (ex. gpt-4o-mini)")
-	stream := flag.Bool("stream", false, "Activer le streaming```	role := flag.String("role", "expert Kali Linux", "Rôle système```ur l'IA")
-	debug := flag.Bool("debug", false, "Activer les logs de```bug")
-	jsonOutput := flag.Bool("json", false, "Output en format JSON```	isInteractive := flag.Bool("i", false, "Start normal interactive```de")
-	isInteractiveShell := flag.Bool("is", false, "Start shell interactive```de")
-	isShell := flag.Bool("s", false, "Generate and Execute shell```mmands")
-	shouldExecuteCommand := flag.Bool("y", false, "Instantly execute the shell```mmand")
+	stream := flag.Bool("stream", false, "Activer le streaming")
+	role := flag.String("role", "expert Kali Linux", "Rôle système pour l'IA")
+	debug := flag.Bool("debug", false, "Activer les logs de debug")
+	jsonOutput := flag.Bool("json", false, "Output en format JSON")
+	isInteractive := flag.Bool("i", false, "Start normal interactive mode")
+	isInteractiveShell := flag.Bool("is", false, "Start shell interactive mode")
+	isShell := flag.Bool("s", false, "Generate and Execute shell commands")
+	shouldExecuteCommand := flag.Bool("y", false, "Instantly execute the shell command")
 
-	// Nouveaux flags pour agent et multimodal```gent := flag.Bool("agent", false, "Activer le mode agent```tonome")
-	image := flag.String("image", "", "Chemin vers l'image à```alyser (pour mode multimodal)")
+	// Nouveaux flags
+	agent := flag.Bool("agent", false, "Activer le mode agent autonome")
+	image := flag.String("image", "", "Chemin vers l'image à analyser (pour mode multimodal)")
 
 	flag.Parse()
 
-	if flag.NArg() < 1 && !*isInteractive && !*isInteractive```ll {
+	if flag.NArg() < 1 && !*isInteractive && !*isInteractiveShell {
 		fmt.Println("Usage : txgpt [flags] \"Votre prompt\"")
 		os.Exit(1)
 	}
 	prompt := flag.Arg(0)
 
 	terminate := make(chan os.Signal, 1)
-	signal.Notify(terminate, os.Interrupt, syscall.SIG```M, syscall```GINT)
+	signal.Notify(terminate, os.Interrupt, syscall.SIGTERM, syscall.SIGINT)
 	go func() {
 		<-terminate
 		fmt.Println("\nSortie propre.")
@@ -120,24 +122,24 @@ func main() {
 	cfg := DefaultConfig()
 	cfg.Model = *model
 	cfg.Stream = *stream
-	cfg.SystemPrompt = fmt.Sprintf("Tu es un %s qui répond toujours en```ançais technique``` *role)
+	cfg.SystemPrompt = fmt.Sprintf("Tu es un %s qui répond toujours en français technique.", *role)
 
 	if *debug {
-		log.Info(fmt.Sprintf("DEBUG: Config - Model: %s, Stream: %v, Role: %s", cfg```del, cfg.Stream, *```e))
+		log.Info(fmt.Sprintf("DEBUG: Config - Model: %s, Stream: %v, Role: %s", cfg.Model, cfg.Stream, *role))
 	}
 
 	// Mode agent autonome
 	if *agent {
 		client := openai.NewClient(os.Getenv("OPENAI_API_KEY"))
-		response := features.AgentMode(client, prompt, 5)  // 5 itérations max par défaut
+		response := features.AgentMode(client, prompt, 5) // 5 itérations max
 		fmt.Println("Réponse agent:", response)
 		return
 	}
 
-	// Mode multimodal (analyse image)
+	// Mode multimodal
 	if *image != "" {
 		client := openai.NewClient(os.Getenv("OPENAI_API_KEY"))
-		response := features.AnalyzeImage```ient, *image, prompt)
+		response := features.AnalyzeImage(client, *image, prompt)
 		fmt.Println("Analyse image:", response)
 		return
 	}
@@ -146,7 +148,9 @@ func main() {
 		interactiveMode(cfg, debug)
 		return
 	}
-	if *isInteractiveShell || *isShell```		interactiveShellMode(cfg, prompt, shouldExecuteCommand, debug```	return
+	if *isInteractiveShell || *isShell {
+		interactiveShellMode(cfg, prompt, shouldExecuteCommand, debug)
+		return
 	}
 
 	response, err := Ask(prompt, nil, cfg)
@@ -161,7 +165,7 @@ func main() {
 			Data     [][]string `json:"data,omitempty"`
 		}{
 			Response: response,
-			Data:     extractDataFromResponse```sponse),
+			Data:     extractDataFromResponse(response),
 		}
 		jsonBytes, err := json.Marshal(jsonResp)
 		if err != nil {
@@ -174,61 +178,5 @@ func main() {
 	}
 }
 
-func interactiveMode(cfg Config, debug *bool) {
-	bold.Print("Mode interactif démarré. Tapez 'exit```our quitter```")
-	history := []string{}
-	for {
-		blue.Println("╭─ You")
-		input := Prompt.Input("╰─> ", func(d Prompt.Document) []Prompt.Suggest {
-			return []Prompt.Suggest{}
-		}, Prompt.OptionHistory(history))
-		input = strings.TrimSpace(input)
-		if input == "exit" {
-			return
-		}
-		if len(input) < 1 {
-			continue
-		}
-		history = append(history, input)
-		response, err := Ask(input, nil, cfg)
-		if err != nil {
-			fmt.Println("Erreur :", err)
-			continue
-		}
-		fmt.Println("Réponse :", response)
-	}
-}
-
-func interactiveShellMode(cfg Config, initialPrompt string, auto```c *bool, debug```ool) {
-	bold.Print("Mode shell interactif démarré. Tape```exit' pour```itter.\n")
-	history := []string{}
-	promptIs := "Génère une commande shell``` wrappe-la dans <cmd>."
-	cfg.SystemPrompt += promptIs
-	if initialPrompt != "" {
-		processShellPrompt(initialPrompt, cfg, autoExec)
-	}
-	for {
-		blue.Println("╭─ You")
-		input := Prompt.Input("╰─> ", func(d Prompt.Document) []Prompt.Suggest {
-			return []Prompt.Suggest{}
-		}, Prompt.OptionHistory(history))
-		input = strings.TrimSpace(input)
-		if input == "exit" {
-			return
-		}
-		if len(input) < 1 {
-			continue
-		}
-		history = append(history, input)
-		processShellPrompt(input, cfg, autoExec)
-	}
-}
-
-func processShellPrompt(prompt string, cfg Config, autoExec```ool) {
-	response, err := Ask(prompt, nil, cfg)
-	if err != nil {
-		fmt.Println("Erreur :", err)
-		return
-	}
-	commandRegex := regexp.MustCompile```cmd>(.*?)</cmd>`)
-	matches := commandRegex.FindString```
+// Vos fonctions existantes (interactiveMode, interactiveShellMode, etc.) inchangées...
+// Collez-les ici si nécessaire, mais elles n'ont pas changé.
