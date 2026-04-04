@@ -52,7 +52,20 @@ select:focus{border-color:var(--green2);}
 #sidebar::-webkit-scrollbar-thumb{background:var(--border);}
 .sec-title{padding:10px 13px 5px;font-size:9px;color:var(--text2);text-transform:uppercase;letter-spacing:2px;border-top:1px solid var(--border);}
 .sec-title:first-child{border-top:none;}
-.tbtn2{display:flex;align-items:center;gap:8px;width:100%;padding:7px 13px;background:none;border:none;color:var(--text);font-family:var(--font);font-sizeus:3px;}
+.tbtn2{display:flex;align-items:center;gap:8px;width:100%;padding:7px 13px;background:none;border:none;color:var(--text);font-family:var(--font);font-size:11px;cursor:pointer;text-align:left;transition:.12s all;border-left:2px solid transparent;}
+.tbtn2:hover{background:var(--bg3);color:var(--green);border-left-color:var(--green);}
+.tbtn2 .ic{font-size:13px;width:18px;flex-shrink:0;text-align:center;color:var(--green2);}
+.tbtn2:hover .ic{color:var(--green);}
+.tbtn2 .ic i{font-size:12px;}
+.tbtn2 .info{display:flex;flex-direction:column;gap:1px;}
+.tbtn2 .name{font-size:11px;}
+.tbtn2 .desc{font-size:9px;color:var(--text2);}
+
+/* -- CHAT -- */
+#chat{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+#msgs{flex:1;overflow-y:auto;padding:18px 22px;display:flex;flex-direction:column;gap:14px;}
+#msgs::-webkit-scrollbar{width:5px;}
+#msgs::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
 
 /* Welcome */
 #welcome{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:18px;opacity:.85;}
@@ -262,6 +275,32 @@ select:focus{border-color:var(--green2);}
     </button>
     <button class="tbtn2" onclick="tool('bash script', 'Ãcris un script bash pour : ')">
       <span class="ic"><i class="fa-solid fa-terminal"></i></span><div class="info"><span class="name">Bash script</span><span class="desc">Shell automation</span></div>
+    </button>
+
+    <div class="sec-title"><i class="fa-brands fa-android" style="margin-right:5px;"></i>Android</div>
+    <button class="tbtn2" onclick="tool('adb', 'GÃ©nÃ¨re les commandes adb (Android Debug Bridge) pour : ')">
+      <span class="ic"><i class="fa-solid fa-mobile-screen-button"></i></span><div class="info"><span class="name">adb</span><span class="desc">Android Debug Bridge</span></div>
+    </button>
+    <button class="tbtn2" onclick="tool('apktool', 'GÃ©nÃ¨re les commandes apktool pour dÃ©compiler, modifier et recompiler cet APK : ')">
+      <span class="ic"><i class="fa-solid fa-box-open"></i></span><div class="info"><span class="name">apktool</span><span class="desc">APK decompile/rebuild</span></div>
+    </button>
+    <button class="tbtn2" onclick="tool('jadx', 'Utilise jadx pour dÃ©compiler cet APK et analyser le code Java/Kotlin : ')">
+      <span class="ic"><i class="fa-solid fa-file-code"></i></span><div class="info"><span class="name">jadx</span><span class="desc">Java decompiler APK</span></div>
+    </button>
+    <button class="tbtn2" onclick="tool('frida android', 'GÃ©nÃ¨re un script Frida pour instrumenter dynamiquement cette application Android et hooker : ')">
+      <span class="ic"><i class="fa-solid fa-syringe"></i></span><div class="info"><span class="name">frida</span><span class="desc">Dynamic instrumentation</span></div>
+    </button>
+    <button class="tbtn2" onclick="tool('objection android', 'Utilise objection pour explorer et contourner les protections de cette app Android (SSL pinning, root detection) : ')">
+      <span class="ic"><i class="fa-solid fa-eye"></i></span><div class="info"><span class="name">objection</span><span class="desc">Runtime exploration</span></div>
+    </button>
+    <button class="tbtn2" onclick="tool('drozer', 'GÃ©nÃ¨re les commandes drozer pour auditer la sÃ©curitÃ© de cette application Android : ')">
+      <span class="ic"><i class="fa-solid fa-bugs"></i></span><div class="info"><span class="name">drozer</span><span class="desc">Android security audit</span></div>
+    </button>
+    <button class="tbtn2" onclick="tool('apksigner / jarsigner', 'Analyse et vÃ©rifie la signature de cet APK avec apksigner ou jarsigner : ')">
+      <span class="ic"><i class="fa-solid fa-certificate"></i></span><div class="info"><span class="name">apksigner</span><span class="desc">APK signature check</span></div>
+    </button>
+    <button class="tbtn2" onclick="tool('MobSF analyse statique Android', 'Effectue une analyse statique complÃ¨te de cet APK Android avec MobSF et liste les vulnÃ©rabilitÃ©s : ')">
+      <span class="ic"><i class="fa-solid fa-shield-halved"></i></span><div class="info"><span class="name">MobSF</span><span class="desc">Mobile Security Framework</span></div>
     </button>
   </div>
 
