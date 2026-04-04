@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>txGPT Pro â Kali Linux AI Interface</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --bg:#0a0a0a;--bg2:#111111;--bg3:#1a1a1a;--bg4:#222222;
+  --green:#00ff41;--green2:#00cc33;--green3:#005515;
+  --red:#ff3c3c;--blue:#3d8bff;--yellow:#f5c400;--purple:#b060ff;
+  --text:#d0d0d0;--text2:#777;--border:#252525;
+  --font:'Courier New',Courier,monospace;
+}
+body{background:var(--bg);color:var(--text);font-family:var(--font);height:100vh;display:flex;flex-direction:column;overflow:hidden;}
+
+/* ââ MODAL ââ */
+#modal{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:999;display:flex;align-items:center;justify-content:center;}
+#modal.hidden{display:none;}
+.modal-box{background:var(--bg2);border:1px solid var(--green);padding:32px;width:440px;border-radius:6px;}
+.modal-box h2{color:var(--green);font-size:18px;letter-spacing:3px;margin-bottom:6px;}
+.modal-box .sub{color:var(--text2);font-size:11px;margin-bottom:20px;line-height:1.6;}
+.modal-box input{width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:10px 12px;font-family:var(--font);font-size:13px;border-radius:4px;outline:none;margin-bottom:14px;}
+.modal-box input:focus{border-color:var(--green2);}
+.modal-box .btn-green{width:100%;background:var(--green);border:none;color:#000;padding:11px;font-family:var(--font);font-size:13px;font-weight:bold;cursor:pointer;border-radius:4px;letter-spacing:2px;text-transform:uppercase;}
+.modal-box .btn-green:hover{background:var(--green2);}
+.modal-err{color:var(--red);font-size:11px;margin-top:8px;display:none;}
+
+/* ââ HEADER ââ */
+#hdr{background:var(--bg2);border-bottom:1px solid var(--border);padding:8px 18px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;gap:12px;}
+.logo{display:flex;align-items:center;gap:10px;}
+.logo-skull{font-size:22px;}
+.logo h1{color:var(--green);font-size:18px;letter-spacing:4px;white-space:nowrap;}
+.logo .ver{color:var(--text2);font-size:10px;}
+.hdr-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.ctrl{display:flex;align-items:center;gap:5px;}
+.ctrl-lbl{color:var(--text2);font-size:10px;text-transform:uppercase;white-space:nowrap;}
+select{background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:5px 7px;font-family:var(--font);font-size:11px;border-radius:3px;outline:none;cursor:pointer;}
+select:focus{border-color:var(--green2);}
+.tbtn{background:var(--bg3);border:1px solid var(--border);color:var(--text2);padding:5px 11px;font-family:var(--font);font-size:11px;cursor:pointer;border-radius:3px;text-transform:uppercase;letter-spacing:1px;transition:.15s all;white-space:nowrap;}
+.tbtn.on{background:var(--green);color:#000;border-color:var(--green);}
+.tbtn:hover:not(.on){border-color:var(--green2);color:var(--green);}
+
+/* ââ LAYOUT ââ */
+#wrap{display:flex;flex:1;overflow:hidden;}
+
+/* ââ SIDEBAR ââ */
+#sidebar{width:210px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;flex-shrink:0;}
+#sidebar::-webkit-scrollbar{width:4px;}
+#sidebar::-webkit-scrollbar-thumb{background:var(--border);}
+.sec-title{padding:10px 13px 5px;font-size:9px;color:var(--text2);text-transform:uppercase;letter-spacing:2px;border-top:1px solid var(--border);}
+.sec-title:first-child{border-top:none;}
+.tbtn2{display:flex;align-items:center;gap:8px;width:100%;padding:7px 13px;background:none;border:none;color:var(--text);font-family:var(--font);font-size:11px;cursor:pointer;text-align:left;transition:.12s all;border-left:2px solid transparent;}
+.tbtn2:hover{background:var(--bg3);color:var(--green);border-left-color:var(--green);}
+.tbtn2 .ic{font-size:13px;width:16px;flex-shrink:0;}
+.tbtn2 .info{display:flex;flex-direction:column;gap:1px;}
+.tbtn2 .name{font-size:11px;}
+.tbtn2 .desc{font-size:9px;color:var(--text2);}
+
+/* ââ CHAT ââ */
+#chat{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+#msgs{flex:1;overflow-y:auto;padding:18px 22px;display:flex;flex-direction:column;gap:14px;}
+#msgs::-webkit-scrollbar{width:5px;}
+#msgs::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
+
+/* Welcome */
+#welcome{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:18px;opacity:.85;}
+.ascii-art{color:var(--green);font-size:11px;line-height:1.25;text-align:center;white-space:pre;}
+.welcome-title{color:var(--text);font-size:15px;letter-spacing:2px;}
+.welcome-sub{color:var(--text2);font-size:11px;text-align:center;line-height:1.7;}
+.quick-btns{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;}
+.qbtn{background:var(--bg3);border:1px solid var(--border);color:var(--text2);padding:6px 14px;font-family:var(--font);font-size:10px;cursor:pointer;border-radius:3px;transition:.15s all;}
+.qbtn:hover{border-color:var(--green);color:var(--green);}
+
+/* Messages */
+.msg{display:flex;flex-direction:column;gap:5px;}
+.msg-hdr{display:flex;align-items:center;gap:7px;}
+.role-tag{padding:2px 8px;border-radius:2px;font-size:9px;letter-spacing:1px;text-transform:uppercase;font-weight:bold;flex-shrink:0;}
+.role-tag.user{background:var(--blue);color:#fff;}
+.role-tag.assistant{background:var(--green);color:#000;}
+.role-tag.system{background:var(--yellow);color:#000;}
+.role-tag.error{background:var(--red);color:#fff;}
+.msg-time{color:var(--text2);font-size:9px;}
+.msg-body{background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:13px 16px;font-size:12.5px;line-height:1.75;word-break:break-word;}
+.msg.user .msg-body{border-left:3px solid var(--blue);}
+.msg.assistant .msg-body{border-left:3px solid var(--green);}
+.msg.system .msg-body{border-left:3px solid var(--yellow);color:var(--yellow);}
+.msg.error .msg-body{border-left:3px solid var(--red);color:var(--red);}
+.msg-body code{background:var(--bg3);padding:1px 5px;border-radius:2px;color:var(--green);font-family:var(--font);font-size:12px;}
+.msg-body pre{background:var(--bg3);border:1px solid var(--border);padding:12px 14px;border-radius:3px;overflow-x:auto;margin:8px 0;position:relative;}
+.msg-body pre code{background:none;padding:0;color:var(--green);font-size:11.5px;display:block;}
+.msg-body strong{color:#fff;}
+.msg-body .cmd-block{background:var(--green3);border:1px solid var(--green2);border-radius:3px;padding:10px 14px;margin:8px 0;display:flex;align-items:center;justify-content:space-between;gap:10px;}
+.msg-body .cmd-text{color:var(--green);font-family:var(--font);font-size:12px;flex:1;word-break:break-all;}
+.msg-body .cmd-run{background:var(--green);border:none;color:#000;padding:4px 10px;font-family:var(--font);font-size:10px;font-weight:bold;cursor:pointer;border-radius:2px;flex-shrink:0;text-transform:uppercase;letter-spacing:1px;}
+.msg-body .cmd-run:hover{background:var(--green2);}
+.msg-actions{display:flex;gap:6px;margin-top:4px;}
+.act-btn{background:none;border:1px solid var(--border);color:var(--text2);padding:3px 9px;font-size:9px;cursor:pointer;border-radius:2px;font-family:var(--font);transition:.12s all;text-transform:uppercase;letter-spacing:1px;}
+.act-btn:hover{border-color:var(--green);color:var(--green);}
+
+/* Typing */
+.typing{display:flex;gap:4px;padding:4px 0;}
+.typing span{width:7px;height:7px;background:var(--green);border-radius:50%;animation:bounce .9s infinite;}
+.typing span:nth-child(2){animation-delay:.2s;}
+.typing span:nth-child(3){animation-delay:.4s;}
+@keyframes bounce{0%,100%{transform:translateY(0);opacity:.3;}50%{transform:translateY(-5px);opacity:1;}}
+.cursor{display:inline-block;width:8px;height:13px;background:var(--green);margin-left:2px;animation:blink .8s infinite;vertical-align:text-bottom;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:0;}}
+
+/* ââ INPUT AREA ââ */
+#inp-area{background:var(--bg2);border-top:1px solid var(--border);padding:12px 18px;display:flex;flex-direction:column;gap:9px;flex-shrink:0;}
+#inp-row{display:flex;gap:9px;align-items:flex-end;}
+#prompt{flex:1;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:9px 13px;font-family:var(--font);font-size:12.5px;border-radius:4px;resize:none;outline:none;min-height:42px;max-height:140px;line-height:1.5;}
+#prompt:focus{border-color:var(--green2);}
+#prompt::placeholder{color:var(--text2);}
+#send{background:var(--green);border:none;color:#000;padding:9px 18px;font-family:var(--font);font-size:12px;font-weight:bold;cursor:pointer;border-radius:4px;letter-spacing:1px;text-transform:uppercase;transition:.15s;white-space:nowrap;align-self:flex-end;}
+#send:hover{background:var(--green2);}
+#send:disabled{background:var(--text2);cursor:not-allowed;}
+#inp-footer{display:flex;justify-content:space-between;align-items:center;}
+.inp-info{font-size:10px;color:var(--text2);}
+.inp-info span{color:var(--green);}
+.footer-btns{display:flex;gap:6px;}
+.fbtn{background:none;border:1px solid var(--border);color:var(--text2);padding:3px 10px;font-family:var(--font);font-size:9px;cursor:pointer;border-radius:2px;text-transform:uppercase;letter-spacing:1px;transition:.12s all;}
+.fbtn:hover{border-color:var(--red);color:var(--red);}
+.fbtn.export:hover{border-color:var(--blue);color:var(--blue);}
+
+/* ââ STATUS BAR ââ */
+#statusbar{background:var(--bg3);border-top:1px solid var(--border);padding:3px 18px;display:flex;justify-content:space-between;font-size:9px;color:var(--text2);flex-shrink:0;}
+.s-ok{color:var(--green);}
+.s-err{color:var(--red);}
+.s-busy{color:var(--yellow);}
+</style>
+</head>
+<body>
+
+<!-- ââ MODAL API KEY ââ -->
+<div id="modal">
+  <div class="modal-box">
+    <h2>â¡ TXGPT PRO</h2>
+    <div class="sub">Entrez votre clÃ© API OpenAI pour dÃ©marrer.<br>StockÃ©e uniquement en mÃ©moire de session.</div>
+    <input type="password" id="api-input" placeholder="sk-..." autocomplete="off"/>
+    <button class="btn-green" onclick="saveKey()">[ INITIALISER ]</button>
+    <div class="modal-err" id="modal-err">ClÃ© invalide. Elle doit commencer par "sk-"</div>
+  </div>
+</div>
+
+<!-- ââ HEADER ââ -->
+<div id="hdr">
+  <div class="logo">
+    <span class="logo-skull">ð</span>
+    <div>
+      <h1>txGPT PRO</h1>
+      <div class="ver">Kali Linux AI Interface v2.0</div>
+    </div>
+  </div>
+  <div class="hdr-right">
+    <div class="ctrl">
+      <span class="ctrl-lbl">RÃ´le</span>
+      <select id="role-sel" onchange="updateRoleDisplay()">
+        <option value="expert Kali Linux et pentester">ð´ Pentester</option>
+        <option value="expert Red Team et offensive security">âï¸ Red Team</option>
+        <option value="expert en forensics Linux et analyse de malwares">ð¬ Forensics</option>
+        <option value="expert OSINT et renseignement">ðµï¸ OSINT</option>
+        <option value="expert en cybersÃ©curitÃ© dÃ©fensive et Blue Team">ð¡ï¸ Blue Team</option>
+        <option value="expert en dÃ©veloppement d'exploits et reverse engineering">âï¸ Exploit Dev</option>
+        <option value="expert en dÃ©veloppement web sÃ©curisÃ©">ð WebDev Sec</option>
+      </select>
+    </div>
+    <div class="ctrl">
+      <span class="ctrl-lbl">Langue</span>
+      <select id="lang-sel">
+        <option value="fr">ð«ð· FR</option>
+        <option value="en">ð¬ð§ EN</option>
+      </select>
+    </div>
+    <div class="ctrl">
+      <span class="ctrl-lbl">Mode</span>
+      <button class="tbtn on" id="btn-chat" onclick="setMode('chat')">Chat</button>
+      <button class="tbtn"    id="btn-shell" onclick="setMode('shell')">Shell</button>
+    </div>
+    <button class="tbtn" onclick="showModal()" title="Changer la clÃ© API">ð API</button>
+    <button class="tbtn" onclick="clearChat()" title="Nouvelle session">ð New</button>
+  </div>
+</div>
+
+<!-- ââ MAIN ââ -->
+<div id="wrap">
+
+  <!-- SIDEBAR -->
+  <div id="sidebar">
+    <div class="sec-title">ð Reconnaissance</div>
+    <button class="tbtn2" onclick="tool('nmap', 'GÃ©nÃ¨re une commande nmap complÃ¨te pour scanner les ports ouverts, services et versions sur la cible : ')">
+      <span class="ic">ð¡</span><div class="info"><span class="name">nmap</span><span class="desc">Port/service scan</span></div>
+    </button>
+    <button class="tbtn2" onclick="tool('gobuster', 'GÃ©nÃ¨re une commande gobuster pour Ã©numÃ©rer les rÃ©pertoires et fichiers cachÃ©s sur : ')">
+      <span class="ic">ð</span><div class="info"><span class="name">gobuster</span><span class="desc">Dir/file fuzzing</span></div>
+    </button>
+    <button class="tbtn2" onclick="tool('nikto', 'GÃ©nÃ¨re une commande nikto pour scanner les vulnÃ©rabilitÃ©s web sur le serveur : ')">
+      <span class="ic">ð</span><div class="info"><span class="name">nikto</span><span class="desc">Web vulns scan</span></div>
+    </button>
+    <button class="tbtn2" onclick="tool('whois/dig', 'GÃ©nÃ¨re les commandes whois, dig, nslookup pour Ã©numÃ©rer le domaine DNS : ')">
+      <span class="ic">ð</span><div class="info"><span class="name">whois / dig</span><span class="desc">DNS enum</span></div>
+    </button>
+    <button class="tbtn2" onclick="tool('theHarvester', 'GÃ©nÃ¨re une commande theHarvester pour collecter emails, sous-domaines et IPs pour : ')">
+      <span class="ic">ð¾</span><div class="info"><span class="name">theHarvester</span><span class="desc">OSINT / emails</span></div>
+    </button>
+    <button class="tbtn2" onclick="tool('enum4linux', 'GÃ©nÃ¨re une commande enum4linux pour Ã©numÃ©rer les partages SMB et utilisateurs Windows sur : ')">
+      <span class="ic">ðª</span><div class="info"><span class="name">enum4linux</span><span class="desc">SMB/Windows enum</span></div>
+    </button>
+
+    <div class="sec-title">ð¥ Exploitation</div>
+    <button class="tbtn2" onclick="tool('sqlmap', 'GÃ©nÃ¨re une commande sqlmap pour dÃ©tecter et exploiter les injections SQL sur : ')">
+      <span class="ic">ð</span><div class="info"><span class="name">sqlmap</span><span class="desc">SQL injection</span></div>
+    </button>
+    <button class="tbtn2" onclick="tool('metasploit', 'GÃ©nÃ¨re les commandes Metasploit (msfconsole) pour exploiter la vulnÃ©rabilitÃ© : ')">
+      <span class="ic">ð</span><div class="info"><span class="name">metasploit</span><span class="desc">Framework exploit</span></div>
+    </button>
+    <button class="tbtn2" onclick="tool('hydra', 'GÃ©nÃ¨re une commande Hydra pour bruteforcer les credentials sur le service : ')">
+      <span class="ic">ð</span><div class="info"><span class="name">hydra</span><span class="desc">Brute force login</span></div>
+    </button>
+    <button class="tbtn2" onclick="tool('john/hashcat', 'GÃ©nÃ¨re la commande john the ripper ou hashcat pour cracker ce hash : ')">
+      <span class="ic">ð</span><div class="info"><span class="name">john / hashcat</span><span class="desc">Hash cracking</span></div>
+    </button>
+    <button class="tbtn2" onclick="tool('XSS payloads', 'GÃ©nÃ¨re des payloads XSS avancÃ©s pour tester la vulnÃ©rabilitÃ© Cross-Site Scripting sur : ')">
+      <span class="ic">â¡</span><div class="info"><span class="name">XSS payloads</span><span class="desc">XSS testing</span></div>
+    </button>
+    <button class="tbtn2" onclick="tool('wfuzz', 'GÃ©nÃ¨re une commande wfuzz pour fuzzer les paramÃ¨tres et endpoints de : ')">
+      <span class="ic">ð</span><div class="info"><span class="name">wfuzz</span><span class="desc">Web fuzzer</span></div>
+    </button>
+
+    <div class="sec-title">ðº Post-Exploitation</div>
+    <button class="tbtn2" onclick="tool('privilege escalation Linux', 'Liste les techniques et commandes de privilege escalation Linux pour le systÃ¨me : ')">
+      <span class="ic">â¬ï¸</span><div class="info"><span class="name">PrivEsc Linux</span><span class="desc">Escalade de privilÃ¨ges</span></div>
+    </button>
+    <button class="tbtn2" onclick="tool('netcat reverse shell', 'GÃ©nÃ¨re une commande netcat pour Ã©tablir un reverse shell stable depuis la cible vers mon IP : ')">
+      <span class="ic">ð</span><div class="info"><span class="name">Reverse Shell</span><span class="desc">netcat / bash / python</span></div>
+    </button>
+    <button class="tbtn2" onclick="tool('mimikatz', 'GÃ©nÃ¨re les commandes mimikatz pour extraire les credentials NTLM sur Windows : ')">
+      <span class="ic">ð</span><div class="info"><span class="name">mimikatz</span><span class="desc">Windows credentials</span></div>
+    </button>
+    <button class="tbtn2" onclick="tool('lateral movement', 'Explique les techniques de lateral movement dans un rÃ©seau Active Directory compromis : ')">
+      <span class="ic">âï¸</span><div class="info"><span class="name">Lateral Movement</span><span class="desc">AD / pivot</span></div>
+    </button>
+
+    <div class="sec-title">ð¬ Forensics</div>
+    <button class="tbtn2" onclick="tool('volatility3', 'GÃ©nÃ¨re les commandes Volatility 3 pour analyser ce dump mÃ©moire et trouver les artefacts malveillants : ')">
+      <span class="ic">ð§ </span><div class="info"><span class="name">volatility3</span><span class="desc">Memory forensics</span></div>
+    </button>
+    <button class="tbtn2" onclick="tool('logs linux (auth.log/syslog)', 'Analyse ces logs Linux et identifie les indicateurs de compromission (IOC) : ')">
+      <span class="ic">ð</span><div class="info"><span class="name">Log Analysis</span><span class="desc">auth.log / syslog</span></div>
+    </button>
+    <button class="tbtn2" onclick="tool('tcpdump/wireshark', 'GÃ©nÃ¨re une commande tcpdump pour capturer le trafic rÃ©seau suspect sur linterface : ')">
+      <span class="ic">ð¦</span><div class="info"><span class="name">tcpdump</span><span class="desc">Packet capture</span></div>
+    </button>
+    <button class="tbtn2" onclick="tool('strace/ltrace', 'GÃ©nÃ¨re les commandes strace/ltrace pour analyser le comportement du binaire suspect : ')">
+      <span class="ic">ð­</span><div class="info"><span class="name">strace / ltrace</span><span class="desc">Process analysis</span></div>
+    </button>
+
+    <div class="sec-title">ð ï¸ Outils SystÃ¨me</div>
+    <button class="tbtn2" onclick="tool('awk/sed/grep', 'GÃ©nÃ¨re une commande awk, sed ou grep pour : ')">
+      <span class="ic">ð§</span><div class="info"><span class="name">awk / sed / grep</span><span class="desc">Text processing</span></div>
+    </button>
+    <button class="tbtn2" onclick="tool('cron / systemd', 'GÃ©nÃ¨re une rÃ¨gle cron ou service systemd pour automatiser : ')">
+      <span class="ic">â°</span><div class="info"><span class="name">cron / systemd</span><span class="desc">Automation</span></div>
+    </button>
+    <button class="tbtn2" onclick="tool('openssl', 'GÃ©nÃ¨re une commande openssl pour : ')">
+      <span class="ic">ð</span><div class="info"><span class="name">openssl</span><span class="desc">Crypto / certs</span></div>
+    </button>
+    <button class="tbtn2" onclick="tool('python3 script', 'Ãcris un script Python3 pour : ')">
+      <span class="ic">ð</span><div class="info"><span class="name">Python3 script</span><span class="desc">Automation / exploit</span></div>
+    </button>
+    <button class="tbtn2" onclick="tool('bash script', 'Ãcris un script bash pour : ')">
+      <span class="ic">ð¥ï¸</span><div class="info"><span class="name">Bash script</span><span class="desc">Shell automation</span></div>
+    </button>
+  </div>
+
+  <!-- CHAT -->
+  <div id="chat">
+    <div id="msgs">
+      <div id="welcome">
+        <pre class="ascii">
+ ââââââââââââ  âââ âââââââ âââââââ âââââââââ    âââââââ âââââââ  âââââââ
+    ââââââââââââââââââââââ âââââââââââââââââ    âââââââââââââââââââââââââ
+    âââ    ââââââ âââ  ââââââââââââ   âââ       âââââââââââââââââââ   âââ
+    âââ    ââââââ âââ   ââââââââââ    âââ       âââââââ âââââââââââ   âââ
+    âââ   ââââ âââââââââââââââ        âââ       âââ     âââ  ââââââââââââ
+    âââ   âââ  âââ âââââââ âââ        âââ       âââ     âââ  âââ âââââââ </pre>
+        <div class="welcome-title">Kali Linux AI Interface â v2.0</div>
+        <div class="welcome-sub">SÃ©lectionne un outil dans la barre latÃ©rale ou tape directement ton prompt.<br>
+        Mode <span style="color:var(--green)">CHAT</span> pour converser Â· Mode <span style="color:var(--green)">SHELL</span> pour gÃ©nÃ©rer des commandes executables.</div>
+        <div class="quick-btns">
+          <button class="qbtn" onclick="quickPrompt('Quels sont les 10 outils Kali Linux les plus utiles pour un pentest ?')">ð´ Top Kali Tools</button>
+          <button class="qbtn" onclick="quickPrompt('Comment effectuer un pentest rÃ©seau complet Ã©tape par Ã©tape ?')">ð¡ Pentest rÃ©seau</button>
+          <button class="qbtn" onclick="quickPrompt('Explique les principales vulnÃ©rabilitÃ©s OWASP Top 10')">ð OWASP Top 10</button>
+          <button class="qbtn" onclick="quickPrompt('Comment dÃ©tecter et rÃ©pondre Ã  une intrusion sur Linux ?')">ð¡ï¸ Incident Response</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="inp-area">
+      <div id="inp-row">
+        <textarea id="prompt" placeholder="Tape ton prompt ici... (EntrÃ©e = envoyer Â· Shift+EntrÃ©e = saut de ligne)" rows="1"></textarea>
+        <button id="send" onclick="send()">[ ENVOYER ]</button>
+      </div>
+      <div id="inp-footer">
+        <div class="inp-info">Mode: <span id="mode-disp">CHAT</span> Â· RÃ´le: <span id="role-disp">Pentester</span></div>
+        <div class="footer-btns">
+          <button class="fbtn export" onclick="exportSession()">[ EXPORT ]</button>
+          <button class="fbtn" onclick="clearChat()">[ CLEAR ]</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- STATUS BAR -->
+<div id="statusbar">
+  <span>txGPT Pro v2.0 Â· Kali Linux AI Interface Â· <span id="s-text" class="s-ok">â PRÃT</span></span>
+  <span id="s-model">gpt-4o-mini Â· <span id="s-msgs">0 messages</span></span>
+</div>
+
+<script>
+// ââ STATE ââ
+let apiKey = '';
+let mode   = 'chat';
+let hist   = [];   // OpenAI message history
+let busy   = false;
+
+// ââ HELPERS ââ
+const $  = id => document.getElementById(id);
+const ts = () => new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+
+function setStatus(txt, cls = 's-ok') {
+  const el = $('s-text');
+  el.textContent = (cls === 's-ok' ? 'â ' : cls === 's-busy' ? 'â ' : 'â ') + txt;
+  el.className = cls;
+}
+
+// ââ API KEY ââ
+function saveKey() {
+  const k = $('api-input').value.trim();
+  if (!k.startsWith('sk-') && !k.startsWith('sk-proj-')) {
+    $('modal-err').style.display = 'block';
+    return;
+  }
+  apiKey = k;
+  $('modal').classList.add('hidden');
+  setStatus('CONNECTÃ', 's-ok');
+  sysMsg('â txGPT Pro initialisÃ©. ClÃ© API configurÃ©e. PrÃªt pour le combat. ð');
+}
+function showModal() {
+  $('modal-err').style.display = 'none';
+  $('modal').classList.remove('hidden');
+}
+$('api-input').addEventListener('keydown', e => { if(e.key==='Enter') saveKey(); });
+
+// ââ MODE ââ
+function setMode(m) {
+  mode = m;
+  $('btn-chat').classList.toggle('on', m==='chat');
+  $('btn-shell').classList.toggle('on', m==='shell');
+  $('mode-disp').textContent = m.toUpperCase();
+  $('prompt').placeholder = m==='shell'
+    ? 'DÃ©cris la tÃ¢che shell... (ex: scanner les ports de 192.168.1.0/24)'
+    : 'Tape ton prompt ici... (EntrÃ©e = envoyer Â· Shift+EntrÃ©e = saut de ligne)';
+}
+
+function updateRoleDisplay() {
+  const labels = {
+    'expert Kali Linux et pentester': 'Pentester',
+    'expert Red Team et offensive security': 'Red Team',
+    'expert en forensics Linux et analyse de malwares': 'Forensics',
+    'expert OSINT et renseignement': 'OSINT',
+    'expert en cybersÃ©curitÃ© dÃ©fensive et Blue Team': 'Blue Team',
+    "expert en dÃ©veloppement d'exploits et reverse engineering": 'Exploit Dev',
+    'expert en dÃ©veloppement web sÃ©curisÃ©': 'WebDev Sec',
+  };
+  $('role-disp').textContent = labels[$('role-sel').value] || 'Custom';
+}
+
+// ââ TOOLS SIDEBAR ââ
+function tool(name, prefix) {
+  $('prompt').value = prefix;
+  $('prompt').focus();
+  $('prompt').style.height = 'auto';
+  $('prompt').style.height = Math.min($('prompt').scrollHeight, 140) + 'px';
+  setMode('shell');
+}
+
+function quickPrompt(txt) {
+  $('prompt').value = txt;
+  $('prompt').focus();
+}
+
+// ââ MESSAGES ââ
+function removeWelcome() {
+  const w = $('welcome');
+  if (w) w.remove();
+}
+
+function sysMsg(txt) {
+  removeWelcome();
+  addMsg('system', txt);
+}
+
+function addMsg(role, text, streaming = false) {
+  removeWelcome();
+  const wrap = $('msgs');
+  const div = document.createElement('div');
+  div.className = 'msg ' + role;
+
+  const labels = { user:'VOUS', assistant:'txGPT', system:'SYSTÃME', error:'ERREUR' };
+  div.innerHTML = `
+    <div class="msg-hdr">
+      <span class="role-tag ${role}">${labels[role]||role}</span>
+      <span class="msg-time">${ts()}</span>
+    </div>
+    <div class="msg-body">${streaming ? '<div class="typing"><span></span><span></span><span></span></div>' : render(text)}</div>
+  `;
+  wrap.appendChild(div);
+  wrap.scrollTop = wrap.scrollHeight;
+  updateCounter();
+  return div.querySelector('.msg-body');
+}
+
+function addActions(msgDiv, text) {
+  const a = document.createElement('div');
+  a.className = 'msg-actions';
+  a.innerHTML = `<button class="act-btn" onclick="copyText(this,'${encodeURIComponent(text)}')">ð Copier</button>`;
+  msgDiv.parentElement.appendChild(a);
+}
+
+function updateCounter() {
+  $('s-msgs').textContent = hist.length + ' messages';
+}
+
+// ââ RENDERER ââ
+function render(text) {
+  if (!text) return '';
+  let h = text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+  // Code blocks ```lang\n...\n```
+  h = h.replace(/```(\w*)\n?([\s\S]*?)```/g, (_,lang,code) =>
+    `<pre><code class="lang-${lang||'bash'}">${code.trim()}</code></pre>`);
+
+  // Inline <cmd>...</cmd> â clickable command block
+  h = h.replace(/&lt;cmd&gt;([\s\S]*?)&lt;\/cmd&gt;/g, (_, cmd) => {
+    const safe = cmd.trim();
+    const enc = encodeURIComponent(safe);
+    return `<div class="cmd-block">
+      <span class="cmd-text">$ ${safe}</span>
+      <button class="cmd-run" onclick="copyCmd(this,'${enc}')" title="Copier la commande">ð Copier</button>
+    </div>`;
+  });
+
+  // Inline code
+  h = h.replace(/`([^`\n]+)`/g, '<code>$1</code>');
+  // Bold
+  h = h.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+  // Newlines
+  h = h.replace(/\n/g, '<br>');
+  return h;
+}
+
+function copyCmd(btn, enc) {
+  navigator.clipboard.writeText(decodeURIComponent(enc)).then(() => {
+    const orig = btn.textContent;
+    btn.textContent = 'â OK';
+    setTimeout(() => btn.textContent = orig, 1800);
+  });
+}
+
+function copyText(btn, enc) {
+  navigator.clipboard.writeText(decodeURIComponent(enc)).then(() => {
+    const orig = btn.textContent;
+    btn.textContent = 'â CopiÃ©!';
+    setTimeout(() => btn.textContent = orig, 1800);
+  });
+}
+
+// ââ SYSTEM PROMPT ââ
+function buildSysPrompt() {
+  const role = $('role-sel').value;
+  const lang = $('lang-sel').value;
+  const base = lang === 'en'
+    ? `You are a ${role}. Always respond in concise technical English.`
+    : `Tu es un ${role}. RÃ©ponds toujours en franÃ§ais technique et concis.`;
+  if (mode === 'shell') {
+    return base + (lang === 'en'
+      ? ' Generate shell commands and wrap each one in <cmd>...</cmd> tags. Briefly explain each command.'
+      : ' GÃ©nÃ¨re des commandes shell et enveloppe chacune dans des balises <cmd>...</cmd>. Explique briÃ¨vement chaque commande.');
+  }
+  return base;
+}
+
+// ââ SEND ââ
+async function send() {
+  if (busy) return;
+  if (!apiKey) { showModal(); return; }
+
+  const el = $('prompt');
+  const txt = el.value.trim();
+  if (!txt) return;
+
+  el.value = '';
+  el.style.height = 'auto';
+
+  addMsg('user', txt);
+  hist.push({ role: 'user', content: txt });
+
+  const typingBody = addMsg('assistant', '', true);
+  busy = true;
+  setStatus('EN COURS...', 's-busy');
+  $('send').disabled = true;
+
+  const messages = [
+    { role: 'system', content: buildSysPrompt() },
+    ...hist.slice(-12)
+  ];
+
+  try {
+    const res = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + apiKey
+      },
+      body: JSON.stringify({ model: 'gpt-4o-mini', messages, stream: true, max_tokens: 2048 })
+    });
+
+    if (!res.ok) {
+      const e = await res.json();
+      throw new Error(e.error?.message || 'HTTP ' + res.status);
+    }
+
+    const reader = res.body.getReader();
+    const dec    = new TextDecoder();
+    let full     = '';
+
+    typingBody.innerHTML = '<span class="cursor"></span>';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      const lines = dec.decode(value).split('\n').filter(l => l.startsWith('data: '));
+      for (const line of lines) {
+        const d = line.slice(6);
+        if (d === '[DONE]') continue;
+        try {
+          const delta = JSON.parse(d).choices[0]?.delta?.content || '';
+          full += delta;
+          typingBody.innerHTML = render(full) + '<span class="cursor"></span>';
+          $('msgs').scrollTop = $('msgs').scrollHeight;
+        } catch(_) {}
+      }
+    }
+
+    typingBody.innerHTML = render(full);
+    addActions(typingBody, full);
+    hist.push({ role: 'assistant', content: full });
+    setStatus('PRÃT', 's-ok');
+
+  } catch (err) {
+    typingBody.closest('.msg').remove();
+    addMsg('error', 'Erreur API : ' + err.message);
+    setStatus('ERREUR', 's-err');
+    hist.pop(); // remove the user msg that failed
+  }
+
+  busy = false;
+  $('send').disabled = false;
+  updateCounter();
+}
+
+// ââ CLEAR / EXPORT ââ
+function clearChat() {
+  $('msgs').innerHTML = '';
+  hist = [];
+  updateCounter();
+  const w = document.createElement('div');
+  w.id = 'welcome';
+  w.innerHTML = `<div class="welcome-title" style="color:var(--text2);font-size:13px">Session effacÃ©e. Nouvelle conversation.</div>`;
+  $('msgs').appendChild(w);
+}
+
+function exportSession() {
+  if (!hist.length) return;
+  const lines = hist.map(m => `[${m.role.toUpperCase()}] ${ts()}\n${m.content}`).join('\n\n---\n\n');
+  const blob = new Blob([lines], { type: 'text/plain' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'txgpt-session-' + Date.now() + '.txt';
+  a.click();
+}
+
+// ââ KEYBOARD ââ
+$('prompt').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
+});
+$('prompt').addEventListener('input', function() {
+  this.style.height = 'auto';
+  this.style.height = Math.min(this.scrollHeight, 140) + 'px';
+});
+</script>
+</body>
+</html>
